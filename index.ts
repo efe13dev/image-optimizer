@@ -1,6 +1,5 @@
 import sharp from 'sharp';
-import path from 'path';
-import fs from 'fs/promises';
+import path from 'node:path';
 
 async function getMetadata(imageName: string): Promise<sharp.Metadata | null> {
   try {
@@ -29,15 +28,14 @@ async function resizeImage(imageName: string, width: number): Promise<boolean> {
 
 async function fileExists(filePath: string): Promise<boolean> {
   try {
-    await fs.access(filePath);
-    return true;
+    return await Bun.file(filePath).exists();
   } catch {
     return false;
   }
 }
 
 async function main() {
-  const imageName = 'example.jpg';
+  const imageName = 'exampl.jpg';
   const imagePath = path.join('public', imageName);
 
   if (!(await fileExists(imagePath))) {
