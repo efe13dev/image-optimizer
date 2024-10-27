@@ -3,10 +3,15 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "dev": "bun run src/index.ts"
+    "dev": "bun run src/index.ts",
+    "test": "npx eslint index.ts"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@eslint/js": "^9.13.0",
+    "@types/bun": "latest",
+    "eslint": "^9.13.0",
+    "globals": "^15.11.0",
+    "typescript-eslint": "^8.11.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
