@@ -3,6 +3,8 @@ import path from 'node:path';
 import type { ImageMetadata } from '@/types/image.types';
 
 const PUBLIC_DIR = 'public';
+const DEFAULT_DIMENSION = 0;
+const DEFAULT_FORMAT = '';
 
 export async function resizeImage(
   imageName: string,
@@ -13,11 +15,10 @@ export async function resizeImage(
 
   try {
     await sharp(imagePath).resize(width).toFile(outputPath);
-    // eslint-disable-next-line
+
     console.log(`Imagen redimensionada con éxito: ${outputPath}`);
     return true;
   } catch (error) {
-    // eslint-disable-next-line
     console.error('Error al redimensionar la imagen:', error);
     return false;
   }
@@ -31,12 +32,11 @@ export async function getMetadata(
   try {
     const metadata = await sharp(imagePath).metadata();
     return {
-      width: metadata.width || 0,
-      height: metadata.height || 0,
-      format: metadata.format || ''
+      width: metadata.width ?? DEFAULT_DIMENSION,
+      height: metadata.height ?? DEFAULT_DIMENSION,
+      format: metadata.format ?? DEFAULT_FORMAT
     };
   } catch (error) {
-    // eslint-disable-next-line
     console.error('Error al obtener metadatos:', error);
     return null;
   }

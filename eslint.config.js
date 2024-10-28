@@ -1,25 +1,13 @@
-import globals from 'globals';
-import pluginJs from '@eslint/js';
-import tseslint from 'typescript-eslint';
+import love from 'eslint-config-love';
 
 export default [
-  { files: ['**/*.{js,mjs,cjs,ts}'] },
-  { languageOptions: { globals: globals.node } },
-  pluginJs.configs.recommended,
-  ...tseslint.configs.recommended,
   {
-    languageOptions: {
-      parserOptions: {
-        project: true,
-        tsconfigDirName: import.meta.dirname
-      }
-    }
+    ...love,
+    files: ['**/*.js', '**/*.ts']
   },
   {
     rules: {
-      'no-console': 'warn',
-      semi: ['error'],
-      '@typescript-eslint/no-explicit-any': 'error'
+      semi: 'error'
     }
   }
 ];
