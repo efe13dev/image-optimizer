@@ -1,5 +1,10 @@
 # image-optimizer
 
+## TODO
+
+- [ ] Preguntar si quieres conservar las originales o eliminarlas.
+- [ ] Crear el ejecutable.
+
 ## Script para optimizar imágenes
 
 - La idea es que le digamos una ruta y el revise todas las imagenes que haya en esa carpeta y las optimice.

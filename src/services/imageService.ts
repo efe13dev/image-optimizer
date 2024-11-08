@@ -1,43 +1,59 @@
-import sharp from 'sharp';
-import path from 'node:path';
-import type { ImageMetadata } from '@/types/image.types';
+import sharp, { type Metadata } from 'sharp';
 
-const PUBLIC_DIR = 'public';
-const DEFAULT_DIMENSION = 0;
-const DEFAULT_FORMAT = '';
+interface ResizeImageParams {
+  inputPath: string;
+  outputPath: string;
+  targetHeight: number;
+  originalHeight: number;
+}
 
-export async function resizeImage(
-  imageName: string,
-  width: number
-): Promise<boolean> {
-  const imagePath = path.join(PUBLIC_DIR, imageName);
-  const outputPath = path.join(PUBLIC_DIR, `resized-${imageName}`);
+const JPEG_QUALITY_LEVEL = 90;
 
+export async function getMetadata(imagePath: string): Promise<Metadata> {
   try {
-    await sharp(imagePath).resize(width).toFile(outputPath);
-
-    console.log(`Imagen redimensionada con éxito: ${outputPath}`);
-    return true;
+    const metadata = await sharp(imagePath).metadata();
+    return metadata;
   } catch (error) {
-    console.error('Error al redimensionar la imagen:', error);
-    return false;
+    throw new Error(
+      `Error al leer metadatos: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
   }
 }
 
-export async function getMetadata(
-  imageName: string
-): Promise<ImageMetadata | null> {
-  const imagePath = path.join(PUBLIC_DIR, imageName);
-
+export async function resizeImage({
+  inputPath,
+  outputPath,
+  targetHeight,
+  originalHeight
+}: ResizeImageParams): Promise<void> {
   try {
-    const metadata = await sharp(imagePath).metadata();
-    return {
-      width: metadata.width ?? DEFAULT_DIMENSION,
-      height: metadata.height ?? DEFAULT_DIMENSION,
-      format: metadata.format ?? DEFAULT_FORMAT
-    };
+    if (originalHeight > targetHeight) {
+      await sharp(inputPath)
+        .resize({
+          height: targetHeight,
+          width: undefined,
+          withoutEnlargement: true
+        })
+        .jpeg({
+          quality: JPEG_QUALITY_LEVEL,
+          mozjpeg: true
+        })
+        .toFile(outputPath);
+    } else {
+      await sharp(inputPath)
+        .jpeg({
+          quality: JPEG_QUALITY_LEVEL,
+          mozjpeg: true
+        })
+        .toFile(outputPath);
+    }
   } catch (error) {
-    console.error('Error al obtener metadatos:', error);
-    return null;
+    throw new Error(
+      `Error al redimensionar imagen: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
   }
 }

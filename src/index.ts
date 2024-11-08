@@ -1,15 +1,23 @@
 import path from 'node:path';
-//import { getMetadata, resizeImage } from './services/imageService';
+import { getMetadata, resizeImage } from './services/imageService';
 import { fileExists } from './utils/fileUtils';
-//import inquirer from 'inquirer';
+import inquirer from 'inquirer';
 import { homedir } from 'node:os';
 import chalk from 'chalk';
 import fs from 'node:fs/promises';
 import ora from 'ora';
 
-//const MAX_IMAGE_HEIGHT = 2160;
-const ANIMATION_DELAY_MS = 2000;
+const ANIMATION_DELAY_MS = 1000;
 const EMPTY_LENGTH = 0;
+const DEFAULT_HEIGHT = 0;
+
+const RESOLUTION_1440P = 1440;
+const RESOLUTION_900P = 900;
+
+const RESOLUTIONS = {
+  '1440p': RESOLUTION_1440P,
+  '900p': RESOLUTION_900P
+} as const;
 
 async function main(): Promise<void> {
   const desktopPath = path.join(homedir(), 'Desktop');
@@ -27,12 +35,12 @@ async function main(): Promise<void> {
   const exists = await fileExists(imagesPath);
 
   if (!exists) {
-    spinner.warn(chalk.yellow('No se encontró la carpeta images'));
-    console.error(chalk.red('La carpeta images no existe en el escritorio 😥'));
+    spinner.fail(chalk.red('No se encontró la carpeta images'));
+    console.error('La carpeta images no existe en el escritorio 😥');
     return;
   }
 
-  spinner.succeed(chalk.green('Carpeta images encontrada correctamente'));
+  spinner.succeed(chalk.green('Carpeta images encontrada!!'));
 
   // Nuevo spinner para comprobar contenido
   spinner = ora({
@@ -50,11 +58,9 @@ async function main(): Promise<void> {
   );
 
   if (imageFiles.length === EMPTY_LENGTH) {
-    spinner.fail(chalk.yellow('Carpeta images vacía'));
+    spinner.fail(chalk.red('Carpeta images vacía'));
     console.error(
-      chalk.red(
-        '😥 La carpeta images no contiene ninguna imágen. Añade algunas 📸'
-      )
+      '😥 La carpeta images no contiene ninguna imágen. Añade algunas 📸'
     );
     return;
   }
@@ -63,17 +69,53 @@ async function main(): Promise<void> {
     chalk.green(`Se encontraron ${imageFiles.length} imágenes 🖼️`)
   );
 
-  /*   const metadata = await getMetadata(imageName);
-  if (metadata != null) {
-    console.log('Metadatos obtenidos con éxito:', metadata);
-  } else {
-    console.log('No se pudieron obtener los metadatos');
+  const { resolution } = await inquirer.prompt<{ resolution: number }>([
+    {
+      type: 'list',
+      name: 'resolution',
+      message: '¿A qué resolución quieres optimizar las imágenes?',
+      choices: [
+        { name: '1440p - Alta calidad', value: RESOLUTIONS['1440p'] },
+        { name: '900p - Calidad media', value: RESOLUTIONS['900p'] }
+      ]
+    }
+  ]);
+
+  console.log(chalk.blue(`Optimizando imágenes a ${resolution}p`));
+
+  // Procesar cada imagen
+  for (const imageFile of imageFiles) {
+    const imagePath = path.join(imagesPath, imageFile);
+
+    spinner = ora({
+      text: chalk.blue(`Procesando ${imageFile}...`),
+      color: 'cyan'
+    }).start();
+
+    try {
+      // Obtener metadatos de la imagen
+      const metadata = await getMetadata(imagePath);
+
+      // Crear nombre para la imagen optimizada
+      const optimizedName = `optimized-${resolution}-${imageFile}`;
+      const outputPath = path.join(imagesPath, optimizedName);
+
+      // Redimensionar y optimizar la imagen
+      await resizeImage({
+        inputPath: imagePath,
+        outputPath,
+        targetHeight: resolution,
+        originalHeight: metadata.height ?? DEFAULT_HEIGHT
+      });
+
+      spinner.succeed(chalk.green(`✨ ${imageFile} optimizada correctamente`));
+    } catch (error) {
+      spinner.fail(chalk.red(`Error procesando ${imageFile}`));
+      console.error(`Error en ${imageFile}:`, error);
+    }
   }
 
-  const resizeSuccess = await resizeImage(imageName, MAX_IMAGE_HEIGHT);
-  if (!resizeSuccess) {
-    console.log('No se pudo redimensionar la imagen');
-  }*/
+  console.log(chalk.green.bold('\n¡Proceso completado! 🎉'));
 }
 
 main().catch((error) => {
