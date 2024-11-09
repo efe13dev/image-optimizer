@@ -6,18 +6,8 @@ import { homedir } from 'node:os';
 import chalk from 'chalk';
 import fs from 'node:fs/promises';
 import ora from 'ora';
-
-const ANIMATION_DELAY_MS = 1000;
-const EMPTY_LENGTH = 0;
-const DEFAULT_HEIGHT = 0;
-
-const RESOLUTION_1440P = 1440;
-const RESOLUTION_900P = 900;
-
-const RESOLUTIONS = {
-  '1440p': RESOLUTION_1440P,
-  '900p': RESOLUTION_900P
-} as const;
+import { RESOLUTIONS } from './constants/image.constants';
+import { ANIMATION_DELAY_MS, EMPTY_LENGTH, DEFAULT_HEIGHT } from './constants';
 
 async function main(): Promise<void> {
   const desktopPath = path.join(homedir(), 'Desktop');
@@ -75,7 +65,7 @@ async function main(): Promise<void> {
       name: 'resolution',
       message: '¿A qué resolución quieres optimizar las imágenes?',
       choices: [
-        { name: '1440p - Alta calidad', value: RESOLUTIONS['1440p'] },
+        { name: '2160p - Alta calidad', value: RESOLUTIONS['2160p'] },
         { name: '900p - Calidad media', value: RESOLUTIONS['900p'] }
       ]
     }
@@ -96,16 +86,24 @@ async function main(): Promise<void> {
       // Obtener metadatos de la imagen
       const metadata = await getMetadata(imagePath);
 
+      // Determinar el lado más largo
+      const isVertical =
+        (metadata.height ?? DEFAULT_HEIGHT) >
+        (metadata.width ?? DEFAULT_HEIGHT);
+      const longestSide = isVertical ? metadata.height : metadata.width;
+
       // Crear nombre para la imagen optimizada
-      const optimizedName = `optimized-${resolution}-${imageFile}`;
+      const fileNameWithoutExt = imageFile.replace(/\.[^/.]+$/, '');
+      const optimizedName = `optimized-${resolution}-${fileNameWithoutExt}.jpg`;
       const outputPath = path.join(imagesPath, optimizedName);
 
       // Redimensionar y optimizar la imagen
       await resizeImage({
         inputPath: imagePath,
         outputPath,
-        targetHeight: resolution,
-        originalHeight: metadata.height ?? DEFAULT_HEIGHT
+        targetResolution: resolution,
+        originalResolution: longestSide ?? DEFAULT_HEIGHT,
+        isVertical
       });
 
       spinner.succeed(chalk.green(`✨ ${imageFile} optimizada correctamente`));

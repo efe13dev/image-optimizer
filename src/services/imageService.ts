@@ -1,13 +1,12 @@
 import sharp, { type Metadata } from 'sharp';
-
+import { JPEG_QUALITY_LEVEL } from '../constants/image.constants';
 interface ResizeImageParams {
   inputPath: string;
   outputPath: string;
-  targetHeight: number;
-  originalHeight: number;
+  targetResolution: number;
+  originalResolution: number;
+  isVertical: boolean;
 }
-
-const JPEG_QUALITY_LEVEL = 90;
 
 export async function getMetadata(imagePath: string): Promise<Metadata> {
   try {
@@ -25,30 +24,30 @@ export async function getMetadata(imagePath: string): Promise<Metadata> {
 export async function resizeImage({
   inputPath,
   outputPath,
-  targetHeight,
-  originalHeight
+  targetResolution,
+  originalResolution,
+  isVertical
 }: ResizeImageParams): Promise<void> {
   try {
-    if (originalHeight > targetHeight) {
-      await sharp(inputPath)
-        .resize({
-          height: targetHeight,
-          width: undefined,
-          withoutEnlargement: true
-        })
-        .jpeg({
-          quality: JPEG_QUALITY_LEVEL,
-          mozjpeg: true
-        })
-        .toFile(outputPath);
-    } else {
-      await sharp(inputPath)
-        .jpeg({
-          quality: JPEG_QUALITY_LEVEL,
-          mozjpeg: true
-        })
-        .toFile(outputPath);
+    const pipeline = sharp(inputPath);
+
+    // Primero aplicamos el resize si es necesario
+    if (originalResolution > targetResolution) {
+      pipeline.resize({
+        ...(isVertical
+          ? { height: targetResolution }
+          : { width: targetResolution }),
+        withoutEnlargement: true
+      });
     }
+
+    // Luego forzamos la conversión a JPEG con las opciones de calidad
+    await pipeline
+      .toFormat('jpeg', {
+        quality: JPEG_QUALITY_LEVEL,
+        mozjpeg: true
+      })
+      .toFile(outputPath);
   } catch (error) {
     throw new Error(
       `Error al redimensionar imagen: ${
