@@ -8,6 +8,7 @@ import fs from 'node:fs/promises';
 import ora from 'ora';
 import { RESOLUTIONS } from './constants/image.constants';
 import { ANIMATION_DELAY_MS, EMPTY_LENGTH, DEFAULT_HEIGHT } from './constants';
+import sharp from 'sharp';
 
 async function main(): Promise<void> {
   const desktopPath = path.join(homedir(), 'Desktop');
@@ -78,11 +79,15 @@ async function main(): Promise<void> {
     const imagePath = path.join(imagesPath, imageFile);
 
     spinner = ora({
-      text: chalk.blue(`Procesando ${imageFile}...`),
+      text:
+        chalk.blue(`Procesando `) + chalk.yellow(imageFile) + chalk.blue('...'),
       color: 'cyan'
     }).start();
 
     try {
+      // Simular delay para la animación de optimización
+      await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY_MS));
+
       // Obtener metadatos de la imagen
       const metadata = await getMetadata(imagePath);
 
@@ -110,6 +115,45 @@ async function main(): Promise<void> {
     } catch (error) {
       spinner.fail(chalk.red(`Error procesando ${imageFile}`));
       console.error(`Error en ${imageFile}:`, error);
+    }
+  }
+
+  // Preguntar si desea eliminar las originales
+  const { deleteOriginals } = await inquirer.prompt<{
+    deleteOriginals: boolean;
+  }>([
+    {
+      type: 'confirm',
+      name: 'deleteOriginals',
+      message: '¿Deseas eliminar las imágenes originales?',
+      default: false
+    }
+  ]);
+
+  if (deleteOriginals) {
+    spinner = ora({
+      text: chalk.blue('Eliminando imágenes originales...'),
+      color: 'cyan'
+    }).start();
+
+    try {
+      // Limpiar la caché de Sharp antes de empezar
+      sharp.cache(false);
+
+      // Simular delay para la animación
+      await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY_MS));
+
+      for (const imageFile of imageFiles) {
+        const imagePath = path.join(imagesPath, imageFile);
+        await fs.unlink(imagePath);
+      }
+
+      spinner.succeed(
+        chalk.green('Imágenes originales eliminadas correctamente')
+      );
+    } catch (error) {
+      spinner.fail(chalk.red('Error al eliminar las imágenes originales'));
+      console.error('Error:', error);
     }
   }
 
