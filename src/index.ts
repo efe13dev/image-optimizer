@@ -11,6 +11,10 @@ import { ANIMATION_DELAY_MS, EMPTY_LENGTH, DEFAULT_HEIGHT } from './constants';
 import sharp from 'sharp';
 
 async function main(): Promise<void> {
+  console.log('\n' + chalk.cyan.bold('================================'));
+  console.log(chalk.magenta.bold('    🖼️  OPTIMIZADOR DE IMÁGENES'));
+  console.log(chalk.cyan.bold('================================\n'));
+
   const desktopPath = path.join(homedir(), 'Desktop');
 
   const imagesPath = path.join(desktopPath, 'images');
