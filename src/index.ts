@@ -57,6 +57,15 @@ async function main(): Promise<void> {
     console.error(
       '😥 La carpeta images no contiene ninguna imágen. Añade algunas 📸'
     );
+
+    // Agregar prompt para esperar Enter
+    await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'continue',
+        message: 'Presiona Enter para salir...'
+      }
+    ]);
     return;
   }
 
@@ -162,6 +171,15 @@ async function main(): Promise<void> {
   }
 
   console.log(chalk.green.bold('\n¡Proceso completado! 🎉'));
+
+  // Agregar prompt para esperar Enter antes de cerrar
+  await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'continue',
+      message: 'Presiona Enter para salir...'
+    }
+  ]);
 }
 
 main().catch((error) => {

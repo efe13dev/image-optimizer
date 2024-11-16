@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "bun run src/index.ts",
-    "test": "npx eslint index.ts"
+    "test": "npx eslint index.ts",
+    "build": "bun build ./src/index.ts --compile --outfile optimizador-imagenes.exe"
   },
   "devDependencies": {
     "@types/bun": "latest",
