@@ -73,17 +73,23 @@ async function main(): Promise<void> {
     chalk.green(`Se encontraron ${imageFiles.length} imágenes 🖼️`)
   );
 
-  const { resolution } = await inquirer.prompt<{ resolution: number }>([
+  const { resolution } = await inquirer.prompt<{ resolution: number | null }>([
     {
       type: 'list',
       name: 'resolution',
       message: '¿A qué resolución quieres optimizar las imágenes?',
       choices: [
         { name: '2160p - Alta calidad', value: RESOLUTIONS['2160p'] },
-        { name: '900p - Calidad media', value: RESOLUTIONS['900p'] }
+        { name: '900p - Calidad media', value: RESOLUTIONS['900p'] },
+        { name: '❌ Salir', value: null }
       ]
     }
   ]);
+
+  if (resolution === null) {
+    console.log(chalk.yellow('\nOperación cancelada. ¡Hasta luego! 👋'));
+    return;
+  }
 
   console.log(chalk.blue(`Optimizando imágenes a ${resolution}p`));
 
